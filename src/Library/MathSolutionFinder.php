@@ -182,6 +182,7 @@ class MathSolutionFinder
                 $this->bestDataId = $load['bestDataId'];
                 $this->combinations = $load['combinations'];
                 $this->savedResults = $load['savedResults'];
+
             }
         }
 
