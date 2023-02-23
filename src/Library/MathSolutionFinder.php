@@ -5,6 +5,7 @@ namespace MathSolutionFinder\Library;
 
 
 use Illuminate\Support\Facades\Cache;
+use phpseclib3\Math\BigInteger\Engines\BCMath\BuiltIn;
 
 
 class MathSolutionFinder
@@ -39,9 +40,11 @@ class MathSolutionFinder
      */
     private $bestResult;
 
-    public static function New(){
+    public static function New()
+    {
         return new MathSolutionFinder();
     }
+
     public function SetMode()
     {
         return new MSF_ModeEnum($this);
@@ -56,8 +59,8 @@ class MathSolutionFinder
 
         if ($data['type'] == 'range') {
 
-            for ($i =1; $i <= $data['count']; $i++) {
-               // $delta = $data['to'] - $data['from'];
+            for ($i = 1; $i <= $data['count']; $i++) {
+                // $delta = $data['to'] - $data['from'];
                 $val = $data['from'] + $i * $data['stepSize'];
                 if (is_int($data['from']) and is_int($data['to'])) $val = intval(round($val));
                 $tests[] = $val;
@@ -167,6 +170,7 @@ class MathSolutionFinder
 
         $this->useCache = $this->GetChaheKey();
         $this->maxTryInOneLearn = $maxTryInOneLearn;
+
         return $this;
     }
 
@@ -270,13 +274,40 @@ class MathSolutionFinder
 
         $this->OnStart();
 
-        if (!$this->bestResult) return null;
+
+        if (!$this->bestResult) return "Пока что не с чем сравнивать";
 
 
-        $minKey = rand(0, $this->lastTry - 1);
-        $minValue = $this->savedResults[$minKey];
+        if ($this->lastTry < 2)  return "Пока что не с чем сравнивать";
 
-        $minData = $this->combinations[$minKey];
+
+        $minData = -1;
+        $minValue = -1;
+        $minKey = -1;
+        $i = 0;
+        while (true) {
+            $i++;
+            if ($i > 4) return  "Не удалось найти данные";
+
+            $minKey = rand(0, $this->lastTry - 1);
+
+            if ($minKey == $this->bestDataId) continue;
+
+            if (!isset($this->savedResults[$minKey])) continue;
+            $minValue = $this->savedResults[$minKey];
+
+            if ($minValue == $this->bestResult) continue;
+
+
+            //if(!isset( $this->combinations[$minKey]))continue;
+
+
+            $minData = $this->combinations[$minKey];
+
+            break;
+        }
+
+
         $maxData = $this->combinations[$this->bestDataId];
 
 
@@ -292,7 +323,21 @@ class MathSolutionFinder
         }
 
 
+
+        if (in_array($data, $this->combinations)) {
+            foreach ($this->combinations as $K => $V) {
+                if ($minData == $V) {
+                    if (isset($this->savedResults[$K])) {
+                        return  "ПОпытка запустить тот же тест: " .$K;
+                    }
+                }
+            }
+        }
+
+
         $playResult = $this->PlayItem($data);
+
+        if (!$playResult) return null;
 
 
         $out = [];
@@ -318,7 +363,7 @@ class MathSolutionFinder
             $this->bestResult = $playResult[0];
             $this->bestDataId = $this->AddCombination($data);
             $this->savedResults[$this->bestDataId] = $playResult[0];
-            dump($this->bestDataId);
+            //  dump($this->bestDataId);
         }
 
         $this->OnStop();
@@ -331,7 +376,7 @@ class MathSolutionFinder
         $result = $fun($data);
 
 
-        if (!$result) return null;
+        if ($result === null) return null;
 
         $isBest = false;
         if ($this->IsBestResult($this->bestResult, $result)) {
@@ -351,7 +396,8 @@ class MathSolutionFinder
         $this->maxTry = count($combos);
 
         $tryCount = 0;
-        $start = $this->lastTry;
+        $start = $this->lastTry + 1;
+
         for ($i = $start; $i < count($combos); $i++) {
 
             $data = $combos[$i];
@@ -359,22 +405,25 @@ class MathSolutionFinder
 
             $response = $this->PlayItem($data);
 
-
-            $this->savedResults[$i] = $response[0] ?? null;
-
-            if (!$response[0]) continue;
-
-
-            if ($response[1]) {
-                $this->bestDataId = $i;
-                $this->bestResult = $response[0];
-            }
             $this->lastTry = $i;
+
+            if ($response) {
+
+                $this->savedResults[$i] = $response[0] ?? null;
+
+                if ($response[1]) {
+                    $this->bestDataId = $i;
+                    $this->bestResult = $response[0];
+                }
+
+            } else {
+
+            }
 
 
             if ($this->maxTryInOneLearn) {
                 $tryCount++;
-                if ($tryCount > $this->maxTryInOneLearn) {
+                if ($tryCount >= $this->maxTryInOneLearn) {
                     break;
                 }
             }
