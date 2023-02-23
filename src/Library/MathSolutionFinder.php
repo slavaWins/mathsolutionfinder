@@ -15,6 +15,9 @@ class MathSolutionFinder
     public $maxTry = 0;
 
 
+    public $maxTryInOneLearn = null;
+
+
     public $savedResults = [];
     public $cashName = null;
 
@@ -36,6 +39,9 @@ class MathSolutionFinder
      */
     private $bestResult;
 
+    public static function New(){
+        return new MathSolutionFinder();
+    }
     public function SetMode()
     {
         return new MSF_ModeEnum($this);
@@ -50,7 +56,8 @@ class MathSolutionFinder
 
         if ($data['type'] == 'range') {
 
-            for ($i = 0; $i < $data['count']; $i++) {
+            for ($i =1; $i <= $data['count']; $i++) {
+               // $delta = $data['to'] - $data['from'];
                 $val = $data['from'] + $i * $data['stepSize'];
                 if (is_int($data['from']) and is_int($data['to'])) $val = intval(round($val));
                 $tests[] = $val;
