@@ -178,3 +178,27 @@ $module = MathSolutionFinder::New()->SetMode()->Max()
 Такая оптимизация не будет давать сразу правильный ответ, но с помощью предположений сможет быстро найти не плохой вариант.
 
  
+### Предсказание чисел
+
+
+    dump("UP TRATE");
+    $data = [
+    '1 day' => 1001,
+    '2 day' => 1011,
+    '3 day' => 1010,
+    '4 day' => 1070,
+    '5 day' => 1072,
+    ];
+    $result = PredictSolutionFinder::PredicatInfo($data);
+
+    dump($result);
+
+    dump("negatrive TRATE");
+    $data = [
+        '1 day' => 1001,
+        '2 day' => 971,
+        '3 day' => 950,
+        '4 day' => 961,
+        '5 day' => 948,
+    ];
+    $result = PredictSolutionFinder::PredicatInfo($data);

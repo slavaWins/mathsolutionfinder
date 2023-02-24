@@ -354,7 +354,7 @@ class MathSolutionFinder
             ],
             'delta' => $delta,
             'mathDeltaData' => $data,
-            'mathDeltaResult' => $playResult ?? null,
+            'mathDeltaResult' => $playResult[0] ?? null,
         ];
 
         if ($playResult[1]) {
@@ -397,6 +397,11 @@ class MathSolutionFinder
 
         $tryCount = 0;
         $start = $this->lastTry + 1;
+
+        if($this->lastTry>=$this->maxTry-1){
+            $this->lastTry=$this->maxTry;
+            return [$this->bestResult, $combos[$this->bestDataId]];
+        }
 
         for ($i = $start; $i < count($combos); $i++) {
 
